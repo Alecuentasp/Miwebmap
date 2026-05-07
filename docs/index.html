@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="./resources/ol.css">
+        <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+        <link rel="stylesheet" type="text/css" href="resources/horsey.min.css">
+        <link rel="stylesheet" type="text/css" href="resources/ol-search-layer.min.css">
+        <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+        <link rel="stylesheet" href="./resources/qgis2web.css">
+        <style>
+        html, body {
+            background-color: #ffffff;
+        }
+        .ol-control > * {
+            background-color: #f8f8f8!important;
+            color: #444444!important;
+            border-radius: 0px;
+        }
+        .ol-attribution a, .gcd-gl-input::placeholder, .search-layer-input-search::placeholder {
+            color: #444444!important;
+        }
+        .search-layer-input-search {
+            background-color: #f8f8f8!important;
+        }
+        .ol-control > *:focus, .ol-control >*:hover {
+            background-color: rgba(248, 248, 248, 0.7)!important;
+        } 
+        .ol-control {
+            background-color: rgba(255,255,255,.4) !important;
+            padding: 2px !important;
+        } 
+        </style>
+
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+            <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-content"></div>
+            </div>
+        </div>
+        <script src="resources/qgis2web_expressions.js"></script>
+        <script src="./resources/functions.js"></script>
+        <script src="./resources/ol.js"></script>
+        <script src="resources/horsey.min.js"></script>
+        <script src="resources/ol-search-layer.js"></script>
+        <script src="./resources/ol-layerswitcher.js"></script>
+        <script src="resources/photon-geocoder-autocomplete.min.js"></script>
+        <script src="layers/PROVINCIA_1.js"></script><script src="layers/AREAS_PROTEGIDAS_2.js"></script><script src="layers/CUENCASDEINTERESNACIONAL_3.js"></script><script src="layers/CONCESIONES_AREA_4.js"></script><script src="layers/CONCESIONES_LINEAL_5.js"></script>
+        <script src="styles/PROVINCIA_1_style.js"></script><script src="styles/AREAS_PROTEGIDAS_2_style.js"></script><script src="styles/CUENCASDEINTERESNACIONAL_3_style.js"></script><script src="styles/CONCESIONES_AREA_4_style.js"></script><script src="styles/CONCESIONES_LINEAL_5_style.js"></script>
+        <script src="./layers/layers.js" type="text/javascript"></script> 
+        <script src="./resources/Autolinker.min.js"></script>
+        <script src="./resources/qgis2web.js"></script>        
+    </body>
+<script>
+</script>
+<script>
+// === HERRAMIENTAS PARA MAPA DE CUBA ===
+
+// 1. Botón de vista inicial
+var homeButton = document.createElement('div');
+homeButton.innerHTML = '🏠';
+homeButton.title = 'Centrar mapa en Cuba';
+homeButton.style.cssText = 'position:absolute;top:135px;left:6px;background:white;padding:2px 6px;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,0.2);cursor:pointer;z-index:10000;font-size:14px;line-height:1';homeButton.onclick = function() {
+    map.getView().setCenter(ol.proj.fromLonLat([-79.0, 21.5]));
+    map.getView().setZoom(6);
+};
+document.getElementById('map').appendChild(homeButton);
+
+
+
+
+
+
+
+// 3. Mostrar coordenadas al hacer clic (VERSIÓN CORREGIDA)
+var coordDisplay = document.createElement('div');
+coordDisplay.style.cssText = 'position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.75);color:#ffd966;padding:6px 12px;border-radius:4px;font-size:12px;font-family:monospace;z-index:10000;border-left:3px solid #ffd966;pointer-events:none';
+document.getElementById('map').appendChild(coordDisplay);
+
+// Asegurar que el mapa existe y agregar el evento
+if (typeof map !== 'undefined') {
+    map.on('click', function(evt) {
+        try {
+            // Intentar obtener coordenadas en diferentes formatos
+            var coords;
+            if (evt.coordinate) {
+                coords = ol.proj.toLonLat(evt.coordinate);
+            } else if (evt.mapBrowserEvent && evt.mapBrowserEvent.coordinate) {
+                coords = ol.proj.toLonLat(evt.mapBrowserEvent.coordinate);
+            } else {
+                coordDisplay.innerHTML = '📍 Coordenadas no disponibles';
+                return;
+            }
+            
+            var lon = coords[0].toFixed(5);
+            var lat = coords[1].toFixed(5);
+            coordDisplay.innerHTML = '📍 Long: ' + lon + '° | Lat: ' + lat + '°';
+            
+            // También mostrar en consola para depuración (opcional)
+            console.log('Clic en:', lon, lat);
+        } catch(e) {
+            coordDisplay.innerHTML = '📍 Error al obtener coordenadas';
+            console.log('Error:', e);
+        }
+    });
+} else {
+    coordDisplay.innerHTML = '📍 Mapa no listo';
+    console.log('Variable "map" no encontrada');
+}
+</script>
+
+
+<div id="mi-escala-texto" style="position:fixed; bottom:10px; left:550px; background-color:black; padding:5px 10px; border-radius:4px; color:#ffd966; font-size:14px; font-family:monospace; z-index:99999;">1:10.000</div>
+
+<script>
+function actualizarMiEscala() {
+    var zoom = map.getView().getZoom();
+    var texto = '';
+    if (zoom >= 18) texto = '1:1.000';
+    else if (zoom >= 17) texto = '1:2.000';
+    else if (zoom >= 16) texto = '1:4.000';
+    else if (zoom >= 15) texto = '1:8.000';
+    else if (zoom >= 14) texto = '1:15.000';
+    else if (zoom >= 13) texto = '1:30.000';
+    else if (zoom >= 12) texto = '1:60.000';
+    else if (zoom >= 11) texto = '1:120.000';
+    else if (zoom >= 10) texto = '1:250.000';
+    else if (zoom >= 9) texto = '1:500.000';
+    else if (zoom >= 8) texto = '1:1.000.000';
+    else if (zoom >= 7) texto = '1:2.000.000';
+    else if (zoom >= 6) texto = '1:4.000.000';
+    else texto = '1:20.000.000';
+    
+    document.getElementById('mi-escala-texto').innerHTML = texto;
+}
+
+setTimeout(function() {
+    actualizarMiEscala();
+    map.getView().on('change:resolution', actualizarMiEscala);
+}, 2000);
+</script>
+
+</html>
