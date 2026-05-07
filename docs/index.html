@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="./resources/ol.css">
+        <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+        <link rel="stylesheet" type="text/css" href="resources/horsey.min.css">
+        <link rel="stylesheet" type="text/css" href="resources/ol-search-layer.min.css">
+        <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+        <link rel="stylesheet" href="./resources/qgis2web.css">
+        
+        <script src="https://cdn.jsdelivr.net/npm/proj4@2.9.0/dist/proj4.js"></script>
+        
+        <style>
+        html, body {
+            background-color: #ffffff;
+        }
+        .ol-control > * {
+            background-color: #f8f8f8!important;
+            color: #444444!important;
+            border-radius: 0px;
+        }
+        .ol-attribution a, .gcd-gl-input::placeholder, .search-layer-input-search::placeholder {
+            color: #444444!important;
+        }
+        .search-layer-input-search {
+            background-color: #f8f8f8!important;
+        }
+        .ol-control > *:focus, .ol-control >*:hover {
+            background-color: rgba(248, 248, 248, 0.7)!important;
+        } 
+        .ol-control {
+            background-color: rgba(255,255,255,.4) !important;
+            padding: 2px !important;
+        } 
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .home-button {
+                width: 44px !important;
+                height: 44px !important;
+                font-size: 24px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 44px !important;
+            }
+            .coords-panel {
+                font-size: 11px !important;
+                padding: 6px 10px !important;
+                max-width: 85% !important;
+            }
+            .scale-text {
+                font-size: 11px !important;
+                padding: 4px 10px !important;
+            }
+        }
+        </style>
+        <title>Mapa de Cuba - EPSG:3795 (Cuba Norte)</title>
+    </head>
+    <body>
+        <div id="map">
+            <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-content"></div>
+            </div>
+        </div>
+        
+        <div id="coordenadas-panel" class="coords-panel" style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.85); color:#ffd966; padding:8px 15px; border-radius:8px; font-size:12px; font-family:monospace; z-index:10000; border-left:3px solid #ffd966; pointer-events:none; backdrop-filter:blur(2px);">
+            📍 Toca el mapa
+        </div>
+        
+        <div style="position:fixed; bottom:10px; right:10px; z-index:10001; display:flex; gap:8px; align-items:center;">
+            <div id="escala-texto" class="scale-text" style="background-color:rgba(0,0,0,0.75); padding:5px 12px; border-radius:6px; color:#ffd966; font-size:13px; font-family:monospace; pointer-events:none; font-weight:bold;">
+                1:10.000
+            </div>
+            <div id="boton-inicio" class="home-button" style="background-color:rgba(0,0,0,0.8); color:#ffd966; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:36px; cursor:pointer; font-size:20px; border:1px solid #ffd966; transition:all 0.2s; backdrop-filter:blur(2px);">
+                🏠
+            </div>
+        </div>
+        
+        <script src="resources/qgis2web_expressions.js"></script>
+        <script src="./resources/functions.js"></script>
+        <script src="./resources/ol.js"></script>
+        <script src="resources/horsey.min.js"></script>
+        <script src="resources/ol-search-layer.js"></script>
+        <script src="./resources/ol-layerswitcher.js"></script>
+        <script src="resources/photon-geocoder-autocomplete.min.js"></script>
+        <script src="layers/PROVINCIA_1.js"></script>
+        <script src="layers/AREAS_PROTEGIDAS_2.js"></script>
+        <script src="layers/CUENCASDEINTERESNACIONAL_3.js"></script>
+        <script src="layers/CONCESIONES_AREA_4.js"></script>
+        <script src="layers/CONCESIONES_LINEAL_5.js"></script>
+        <script src="styles/PROVINCIA_1_style.js"></script>
+        <script src="styles/AREAS_PROTEGIDAS_2_style.js"></script>
+        <script src="styles/CUENCASDEINTERESNACIONAL_3_style.js"></script>
+        <script src="styles/CONCESIONES_AREA_4_style.js"></script>
+        <script src="styles/CONCESIONES_LINEAL_5_style.js"></script>
+        <script src="./layers/layers.js" type="text/javascript"></script> 
+        <script src="./resources/Autolinker.min.js"></script>
+        <script src="./resources/qgis2web.js"></script>        
+    </body>
+<script>
+// ============================================
+// DEFINICIÓN OFICIAL DE EPSG:3795 PARA CUBA
+// Parámetros EPSG:15978 "NAD27 to WGS 84 (88)"
+// ============================================
+
+// Limpiar definición anterior
+try {
+    delete proj4.defs['EPSG:3795'];
+} catch(e) {}
+
+// Definición CORRECTA con los parámetros de Cuba
+proj4.defs("EPSG:3795", "+proj=lcc +lat_1=23 +lat_2=21.7 +lat_0=22.35 +lon_0=-81 +x_0=500000 +y_0=280296.016 +ellps=clrk66 +towgs84=2.478,149.752,197.726,0.526356,0.497970,-0.500831,0.685238 +units=m +no_defs");
+
+console.log("✅ EPSG:3795 definido con parámetros oficiales de Cuba");
+
+// Función de conversión
+function convertirACubaNorte(lon, lat) {
+    try {
+        var resultado = proj4('EPSG:4326', 'EPSG:3795', [lon, lat]);
+        if (resultado && resultado.length === 2) {
+            return { x: resultado[0], y: resultado[1] };
+        }
+        return null;
+    } catch(e) {
+        console.log("Error:", e);
+        return null;
+    }
+}
+
+function formatearNumero(valor) {
+    return Math.round(valor).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatearGrados(valor) {
+    return Math.abs(valor).toFixed(5) + (valor < 0 ? '° O' : '° N');
+}
+
+// ============================================
+// INICIALIZACIÓN DEL MAPA
+// ============================================
+
+function inicializarMapa() {
+    console.log("=== INICIALIZANDO MAPA ===");
+    
+    if (typeof map === 'undefined') {
+        setTimeout(inicializarMapa, 1000);
+        return;
+    }
+    
+    console.log("Mapa listo");
+    
+    map.on('click', function(evt) {
+        var coordinate = evt.coordinate || (evt.mapBrowserEvent && evt.mapBrowserEvent.coordinate);
+        if (!coordinate) return;
+        
+        var lonLat = ol.proj.toLonLat(coordinate);
+        var lon = lonLat[0];
+        var lat = lonLat[1];
+        
+        var coordsCuba = convertirACubaNorte(lon, lat);
+        var panel = document.getElementById('coordenadas-panel');
+        
+        if (coordsCuba && !isNaN(coordsCuba.x) && !isNaN(coordsCuba.y)) {
+            panel.innerHTML = 
+                '📍 <strong style="color:#ffaa33;">EPSG:3795 (Cuba Norte)</strong><br>' +
+                'X: ' + formatearNumero(coordsCuba.x) + ' m<br>' +
+                'Y: ' + formatearNumero(coordsCuba.y) + ' m<br>' +
+                '<span style="font-size:10px; color:#aaa;">WGS84: ' + formatearGrados(lon) + ', ' + formatearGrados(lat) + '</span>';
+        } else {
+            panel.innerHTML = 
+                '📍 <strong>WGS84</strong><br>' +
+                'Lon: ' + formatearGrados(lon) + '<br>' +
+                'Lat: ' + formatearGrados(lat);
+        }
+    });
+    
+    // Botón de inicio
+    var btn = document.getElementById('boton-inicio');
+    if (btn) {
+        btn.onclick = function() {
+            map.getView().setCenter(ol.proj.fromLonLat([-79.0, 21.5]));
+            map.getView().setZoom(6);
+        };
+    }
+    
+    // Escala dinámica
+    var escalaDiv = document.getElementById('escala-texto');
+    if (escalaDiv && map.getView()) {
+        function actualizarEscala() {
+            try {
+                var zoom = map.getView().getZoom();
+                var texto = '';
+                if (zoom >= 18) texto = '1:1.000';
+                else if (zoom >= 17) texto = '1:2.000';
+                else if (zoom >= 16) texto = '1:4.000';
+                else if (zoom >= 15) texto = '1:8.000';
+                else if (zoom >= 14) texto = '1:15.000';
+                else if (zoom >= 13) texto = '1:30.000';
+                else if (zoom >= 12) texto = '1:60.000';
+                else if (zoom >= 11) texto = '1:120.000';
+                else if (zoom >= 10) texto = '1:250.000';
+                else if (zoom >= 9) texto = '1:500.000';
+                else if (zoom >= 8) texto = '1:1.000.000';
+                else if (zoom >= 7) texto = '1:2.000.000';
+                else if (zoom >= 6) texto = '1:4.000.000';
+                else texto = '1:20.000.000';
+                
+                escalaDiv.innerHTML = texto;
+            } catch(e) {}
+        }
+        
+        actualizarEscala();
+        map.getView().on('change:resolution', actualizarEscala);
+    }
+    
+    document.getElementById('coordenadas-panel').innerHTML = '📍 Toca el mapa - Usando parámetros oficiales de Cuba';
+}
+
+setTimeout(inicializarMapa, 1500);
+</script>
+</html>
